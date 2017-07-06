@@ -47,7 +47,9 @@
     :seconds      (hsql/call :to_timestamp expr)
     :milliseconds (recur (hx// expr 1000) :seconds)))
 
-(defn- date-trunc [unit expr] (hsql/call :date_trunc (hx/literal unit) expr))
+(defn- date-trunc [unit expr]
+  (println "In Vertica Driver date-trunc, invoking with" unit "and" expr)
+  (hsql/call :date_trunc (hx/literal unit) expr))
 (defn- extract    [unit expr] (hsql/call :extract    unit              expr))
 
 (def ^:private extract-integer (comp hx/->integer extract))
@@ -136,6 +138,8 @@
 
 
 ;; only register the Vertica driver if the JDBC driver is available
-(when (u/ignore-exceptions
-        (Class/forName "com.vertica.jdbc.Driver"))
-  (driver/register-driver! :vertica (VerticaDriver.)))
+(if (u/ignore-exceptions
+      (Class/forName "com.vertica.jdbc.Driver"))
+  (do (println "Loading Vertica driver")
+      (driver/register-driver! :vertica (VerticaDriver.)))
+  (println "Not loading Vertica driver"))
